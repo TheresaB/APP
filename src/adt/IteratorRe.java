@@ -3,20 +3,20 @@ package adt;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class IteratorIn<T extends java.lang.Comparable<T>> implements Iterator<RedBlackTree<T>> {
+public class IteratorRe<T extends java.lang.Comparable<T>> implements Iterator<RedBlackTree<T>> {
 	private RedBlackTree<T> rbt;
 	private int i, laenge;
 	private RBTNode<T> actual, last, parent, child;
 	
 	//Konstruktor
-	public IteratorIn(RedBlackTree<T> rbt){
+	public IteratorRe(RedBlackTree<T> rbt){
 		this.rbt = rbt;
 		i = 0;
 		laenge = rbt.size();
-		//kleinster Knoten zuerst
+		//größter Wert zuerst, wird in actual gespeichert
 		actual = rbt.list;
-		while(actual.left.data != null){
-			actual = actual.left;
+		while(actual.right.data != null){
+			actual = actual.right;
 		}
 		parent = actual.p;
 	}
@@ -26,6 +26,7 @@ public class IteratorIn<T extends java.lang.Comparable<T>> implements Iterator<R
 	}
 	
 	public void remove(){
+		//versuchen, den letzten zu löschen
 		try{
 			rbt.remove(last.data);
 		}
@@ -36,24 +37,26 @@ public class IteratorIn<T extends java.lang.Comparable<T>> implements Iterator<R
 	
 	public RedBlackTree<T> next(){
 		last = actual;
-		//wenn es noch rechte Kinder gibt, die zuerst ausgeben
-		if(last.right.data != null){
-			actual = last.right;
-			while(actual.left.data != null){
-				actual = actual.left;
+		//wenn es noch linke Kinder gibt, die zuerst ausgeben
+		if(last.left.data != null){
+			parent = actual.p;
+			actual = last.left;
+			while(actual.right.data != null){
+				actual = actual.right;
+				parent = actual.p;
 			}
 		}
 		else{
 			//zurück zum nächst größeren
 			child = last;
 			parent = last.p;
-			while(parent != null && child == parent.right){
+			while(parent != null && child == parent.left){
 				child = parent;
 				parent = parent.p;
 			}
 			actual = parent;
 		}
-		//i für hasNext() erhöhen
+		//i erhöhen für hasNext() 
 		i++;
 		RedBlackTree<T> rbt2 = new RedBlackTree<T>();
 		rbt2.list = last;

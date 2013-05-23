@@ -2,19 +2,19 @@ package adt;
 
 import number.CompRational;
 
-public class RBTNode {
-	protected CompRational data;
+public class RBTNode<T extends java.lang.Comparable<T>>{
+	public T data;
 	protected String color;
-	RBTNode left, 
+	RBTNode<T> left, 
     		right, 
     		p = null;
 
     //color: Eingabe "black" oder "red"
-    public RBTNode(CompRational x, String color) {
+    public RBTNode(T x, String color) {
     	this.data = x;
     	this.color = color;
-    	this.left = new RBTNode();
-    	this.right = new RBTNode();
+    	this.left = new RBTNode<T>();
+    	this.right = new RBTNode<T>();
     }
     
     //Konstruktor für Blätter

@@ -2,27 +2,27 @@ package adt;
 
 import java.util.Iterator;
 
-import number.CompRational;
 import adt.RBTNode;
 import adt.IteratorIn;
+import adt.IteratorRe;
 
-//Blätter müssen null sein!!!
-
-public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
-	private RBTNode list;
+public class RedBlackTree<T extends java.lang.Comparable<T>> extends java.util.AbstractCollection<RedBlackTree<T>>{
+	public RBTNode<T> list;
 
 	public RedBlackTree(){
 		list = null;
 	}
 	
-	public RBTNode search(CompRational k){ 
+	public RBTNode<T> search(T k){ 
 		return search(list, k); 
 	}
 	
-    public RBTNode search(RBTNode x, CompRational k) {
+    public RBTNode<T> search(RBTNode<T> x, T k) {
     	//x.left/x.right .data == null: es kommen nur noch Blätter, Knoten ist nicht vorhanden
-		if (x == null || x.data == null || x.left.data == null && x.right.data == null || x.data.compareTo(k) == 0) 
+		if(x == null || x.data == null) 
 		    return null;
+		if(x.data.compareTo(k) == 0)
+			return x;
 		//k < x.data: im linken Teilbaum weitersuchen
 		if ( k.compareTo(x.data) < 0) 
 		    return search(x.left, k);
@@ -31,35 +31,37 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
 		    return search(x.right, k);
     }
 	
-    private void rotateleft(RBTNode x){
-    	RBTNode xp = x.p;
-    	RBTNode y = x.right;
+    //Linksrotation
+    private void rotateleft(RBTNode<T> x){
+    	RBTNode<T> xp = x.p;
+    	RBTNode<T> y = x.right;
     	x.right = y.left;
-    	x.right.p = x;
+    	y.left.p = y;
     	y.left = x;
     	x.p = y;
     	y.p = xp;
     }
     
-    private void rotateright(RBTNode y){
-    	RBTNode yp = y.p;
-    	RBTNode x = y.left;
+    //Rechtsrotation
+    private void rotateright(RBTNode<T> y){
+    	RBTNode<T> yp = y.p;
+    	RBTNode<T> x = y.left;
     	y.left = x.right;
-    	y.left.p = y;
+    	x.right.p = x;
     	x.right = y;
     	y.p = x;
     	x.p = yp;
     }
     
-	public void insert(CompRational c){
+	public void insert(T c){
 		//erst überprüfen, ob Knoten schon vorhanden
-		RBTNode a = search(c);
+		RBTNode<T> a = search(c);
 		if(a != null)
 			throw new IllegalArgumentException("Der Knoten ist schon vorhanden!");
 		
-		RBTNode z = new RBTNode(c, "red");
-		RBTNode x = list;
-		RBTNode y = null;
+		RBTNode<T> z = new RBTNode<T>(c, "red");
+		RBTNode<T> x = list;
+		RBTNode<T> y = null;
     	
 		//solange suchen, bis Blatt gefunden wird
     	while (x != null && x.data != null) {
@@ -79,15 +81,13 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
     	else
     		y.right = z;
     	
-    	System.out.println(this);
     	//z ist problematischer Knoten:
     	repareInsert(z);
-    	System.out.println(this);
 	}
 	
 	//rekursive Methode zum reparieren nach dem Einfügen eines neuen Knotens
-	private void repareInsert(RBTNode z){
-    	RBTNode onkel = null;
+	private void repareInsert(RBTNode<T> z){
+    	RBTNode<T> onkel = null;
     	
 		if(z.p == null || z.p.color == "black")
     		return;
@@ -98,14 +98,12 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
     	}
     	else{
     		
-			if(z.p.data.compareTo(z.data) > 0)
+			if(z.p.p.data.compareTo(z.p.data) > 0)
 				onkel = z.p.p.right;
 			else
 				onkel = z.p.p.left;
 				
     		if(z.p.color == "red" && onkel.color == "red"){
-	    	
-	    		
 	    		z.p.p.color = "red";
 	    		z.p.color = "black";
 	    		onkel.color = "black";
@@ -121,7 +119,7 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
 	   		}
 	   		else if(z.p.data.compareTo(z.p.p.data) > 0 && z.data.compareTo(z.p.data) < 0){
 	   			rotateright(z.p);
-	   			repareInsert(z);//likjh
+	   			repareInsert(z);
 	   		}
 	   		else if(z.p.data.compareTo(z.p.p.data) < 0 && z.data.compareTo(z.p.data) < 0){
 	   			String color = z.p.color;
@@ -138,13 +136,13 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
     	}
 	}
 	
-	public void remove(CompRational x){
+	public void remove(T x){
 		//ist x nicht vorhanden, kann es nicht entfernt werden
-		RBTNode a = search(x);
+		RBTNode<T> a = search(x);
 		if(a == null)
 			throw new IllegalArgumentException("Knoten nicht gefunden!");
 		
-		RBTNode z = a.p;
+		RBTNode<T> z = a.p;
 		String acolor = a.color;
 		
 		//a hat nur ein Blatt als Kind: Teilbaum hochziehen
@@ -195,30 +193,30 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
 		if(a.left.data == null && a.right.data == null){
 			if(z == null)
 				list = a.left;
-			else if(z.data.compareTo(a.data) < 0)
+			else if(z.data.compareTo(a.data) > 0)
 				z.left = a.left;
 			else
 				z.right = a.left;
 		}
 		
 		//a hat zwei Kinder: Wert des Minimumknotens y1 des rechten Teilbaums in Wert von a, y1 wird gelöscht 
-		if(a.left != null && a.right != null){
-			RBTNode aright = a.right;
-			RBTNode y2 = aright;
-			RBTNode y1 = a;
+		else if(a.left != null && a.right != null){
+			RBTNode<T> aright = a.right;
+			RBTNode<T> y2 = aright;
+			RBTNode<T> y1 = a;
 			//Suche nach Minimumknoten y1
 			while(y2.data != null){
 				y1 = y2;
 				y2 = y2.left;
 			}
-			CompRational adata = new CompRational(y1.data.getZaehler(), y1.data.getNenner());
+			T adata = y1.data;
 			remove(y1.data);
 			a.data = adata;
 		}
 	}
 	
 	//rekursive Methode zum reparieren nach dem Löschen eines Knotens
-	public void repareRemove(RBTNode z){
+	public void repareRemove(RBTNode<T> z){
 		if(z == list)
 			return;
 		if(z.color == "red"){
@@ -279,7 +277,7 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
 	//läuft einen Pfad bis zum Ende und zählt die schwarzen Knoten
 	public int tiefe(){
 		int tiefe = 0;
-		RBTNode y2 = list.left;
+		RBTNode<T> y2 = list;
 		if(list.color == "black")
 			tiefe++;
 		while(y2.data != null){
@@ -290,23 +288,54 @@ public class RedBlackTree extends java.util.AbstractCollection<RedBlackTree>{
 		return tiefe;
 	}
 	
-	public boolean add(RBTNode rbt){		//...
-		boolean b = false;
+	//versucht Knoten einzufügen, gibt zurück ob etwas geändert wurde
+	public boolean add(RBTNode<T> rbt){
+		boolean b;
+		try{
+			insert(rbt.data);
+			b = true;
+		}
+		catch(IllegalArgumentException e){
+			b = false;
+		}
 		return b;
 	}
 	
-	public int size(){							//...
-		int i = 0;
+	public int size(){
+		return count(list, 0);
+	}
+	
+	//rekursiv Knoten zählen
+	private int count(RBTNode<T> x, int i){
+		//linker Teilbaum + rechter Teilbaum + aktueller Knoten
+		if(x.data != null) {
+		    i = count(x.left, i);
+		    i = count(x.right, i);
+		    i++;
+		}
 		return i;
 	}
 	
-	public Iterator<RedBlackTree> iterator(){	//...
-		Iterator<RedBlackTree> x = null;
+	//implementierte Methode als in-order
+	public Iterator<RedBlackTree<T>> iterator(){	//...
+		Iterator<RedBlackTree<T>> x = new IteratorIn<T>(this);
+		return x;
+	}
+	
+	//in-order-Iterator
+	public IteratorIn<T> iteratorIn(){
+		IteratorIn<T> x = new IteratorIn<T>(this);
+		return x;
+	}
+	
+	//reverse-in-order-Iterator
+	public IteratorRe<T> iteratorRe(){
+		IteratorRe<T> x = new IteratorRe<T>(this);
 		return x;
 	}
 	
 	//rekursiv rbt ausgeben
-	public static String inorder(RBTNode x) {
+	public String inorder(RBTNode<T> x) {
 		if(x != null) {
 		    inorder(x.left);
 		    if(x.p == null && x.data != null)
